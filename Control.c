@@ -3,16 +3,6 @@ typedef char string[256];
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-char GetControl()
-{
-    int t;
-    scanf("%d", &t);
-    if(t<10)
-        return t;
-    else
-        return CHAR_MAX;
-    
-}
 void PrintLine(string a)
 {
     printf(a);

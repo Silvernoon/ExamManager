@@ -11,9 +11,6 @@
 typedef char string[256];
 list *BList;
 list *CList;
-unsigned int Bsize;
-unsigned int Csize;
-void Start();
 void BStart()
 {
     FILE *BlankFile = fopen("BlankQuestions", "a+");
@@ -22,8 +19,7 @@ void BStart()
         PrintLine("[ERROR]填空题题库读取发生错误");
         return;
     } // Load
-    BList = CreateNode(NULL);
-    list *B = BList;
+    ListInit(BList);
     while (1)
     {
         string buffer;
@@ -37,11 +33,9 @@ void BStart()
         strcpy(b->context, buffer);
         fgets(buffer, sizeof(buffer), BlankFile);
         strcpy(b->answer, buffer);
-        BList = ListInsert(BList, CreateNode(b));
-        Bsize = b->id;
+        ListPush(BList, CreateNode(b));
     }
     fclose(BlankFile);
-    BList = B;
 }
 void CStart()
 {
@@ -51,8 +45,7 @@ void CStart()
         PrintLine("[ERROR]选择题题库读取发生错误");
         return;
     } // Load
-    CList = CreateNode(NULL);
-    list *C = CList;
+    ListInit(CList);
     while (1)
     {
         string buffer;
@@ -73,84 +66,27 @@ void CStart()
         fgets(buffer, sizeof(buffer), ChoiceFile);
         strcpy(c->D.context, buffer);
         c->answer = fgetc(ChoiceFile);
-        CList = ListInsert(CList, CreateNode(c));
-        Csize = c->id;
+        ListPush(CList, CreateNode(c));
     }
     fclose(ChoiceFile);
-    CList = C;
 }
 void IOStart()
 {
     BStart();
     CStart();
 }
-void AddQuestion()
+node *findB(node *node, unsigned int id)
 {
-    Clear();
-    printf("该题目类型为：\n[1]选择题\n[2]填空题\n[0]返回\n");
-    switch (GetControl())
+    
+    while (node != NULL)
     {
-    case 1:
-        ChoiceQuestion *c = malloc(sizeof(ChoiceQuestion));
-        Clear();
-        PrintLine("选择题");
-        printf("题目内容：");
-        strcpy(c->context, GetString());
-        printf("A：");
-        strcpy(c->A.context, GetString());
-        printf("B：");
-        strcpy(c->B.context, GetString());
-        printf("C：");
-        strcpy(c->C.context, GetString());
-        printf("D：");
-        strcpy(c->D.context, GetString());
-    re:
-        printf("\r答案：");
-        string context;
-        scanf("%s", context);
-        if (strlen(context) == 1 && ((context[0] < 'D' && context[0] > 'A') || (context[0] < 'd' && context[0] > 'a')))
-            c->answer = context[0];
-        else
-            goto re;
-        ListInsert(CList, CreateNode(c));
-        Csize++;
-        FILE *ChoiceFile = fopen("ChoiceQuestions", "a");
-        fprintf(ChoiceFile, "%08X\n%s\n%s\n%s\n%s\n%s\n%c\n", ++Csize, c->context, c->A.context, c->B.context, c->C.context, c->D.context, c->answer);
-        fclose(ChoiceFile);
-        break;
-    case 2:
-        BlankQuestion *b = malloc(sizeof(BlankQuestion));
-        Clear();
-        printf("填空题");
-        printf("题目内容：");
-        strcpy(b->context, GetString());
-        printf("答案：");
-        strcpy(b->answer, GetString());
-        ListInsert(BList, CreateNode(b));
-        Bsize++;
-        FILE *BlankFile = fopen("BlankQuestions", "a");
-        fprintf(BlankFile, "%08X\n%s\n%s\n", ++Bsize, b->context, b->answer);
-        fclose(BlankFile);
-        break;
-    case 0:
-        break;
-    default:
-        AddQuestion();
-        break;
-    }
-}
-
-list *findB(list *start, unsigned int id)
-{
-    while (start != NULL)
-    {
-        if (start->data != NULL && (*(BlankQuestion *)start->data).id == id)
-            return start;
-        start = start->next;
+        if (node->data != NULL && (*(BlankQuestion *)node->data).id == id)
+            return node;
+        node = node->next;
     }
     return NULL;
 }
-list *findC(list *start, unsigned int id)
+node *findC(node *start, unsigned int id)
 {
     while (start != NULL)
     {
@@ -160,17 +96,17 @@ list *findC(list *start, unsigned int id)
     }
     return NULL;
 }
-void bWrite(list *start, va_list valist)
+void bWrite(node *node, FILE *file)
 {
-    BlankQuestion *b = start->data;
+    BlankQuestion *b = node->data;
     if (b != NULL)
-        fprintf(va_arg(valist, void *), "%08X\n%s%s", b->id, b->context, b->answer);
+        fprintf(file, "%08X\n%s%s", b->id, b->context, b->answer);
 }
-void cWrite(list *start, va_list valist)
+void cWrite(node *node, FILE *file)
 {
-    ChoiceQuestion *c = start->data;
+    ChoiceQuestion *c = node->data;
     if (c != NULL)
-        fprintf(va_arg(valist, void *), "%08X\n%s%s%s%s%s%c\n", c->id, c->context, c->A.context, c->B.context, c->C.context, c->D.context, c->answer);
+        fprintf(file, "%08X\n%s%s%s%s%s%c\n", c->id, c->context, c->A.context, c->B.context, c->C.context, c->D.context, c->answer);
 }
 
 void RemoveQuestion()
@@ -178,7 +114,7 @@ void RemoveQuestion()
     Clear();
     PrintLine("该题目类型为：\n[1]选择题\n[2]填空题\n[0]返回");
     unsigned int id;
-    switch (GetControl())
+    switch (_getch())
     {
     case 1:
         printf("题目id：");
@@ -190,7 +126,7 @@ void RemoveQuestion()
             RemoveQuestion();
         }
         FILE *ChoiceFile = fopen("ChoiceQuestions", "w");
-        Iterator(CList, cWrite, 1, ChoiceFile); // 事实证明，任何试图模仿STL的代码都很弱智
+        Iterator(CList, cWrite, ChoiceFile); // 事实证明，任何试图模仿STL的代码都很弱智
         fclose(ChoiceFile);
         break;
     case 2:
@@ -203,7 +139,7 @@ void RemoveQuestion()
             RemoveQuestion();
         }
         FILE *BlankFile = fopen("BlankQuestions", "w");
-        Iterator(BList, bWrite, 1, BlankFile);
+        Iterator(&BList, bWrite, BlankFile);
         fclose(BlankFile);
         break;
     case 0:
@@ -242,7 +178,7 @@ void Edit()
     // 写入buffer
     WriteConsole(stdOut, buf, strlen(buf), &cbPos, NULL);
     WriteConsole(stdIn, buf, strlen(buf), &cbPos, NULL);
-    
+
     // 读取buffer长度
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(stdOut, &csbi);
@@ -262,8 +198,8 @@ void Detail()
     Clear();
     PrintLine("该题目类型为：\n[1]选择题\n[2]填空题\n[0]返回");
     unsigned int id;
-    list *t;
-    switch (GetControl())
+    node *t;
+    switch (_getch())
     {
     case 1:
         printf("题目id：");

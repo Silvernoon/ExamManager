@@ -1,26 +1,20 @@
 typedef char string[256];
-#include "Control.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-void PrintLine(string a)
-{
-    printf(a);
-    printf("\n");
-}
+#include "Control.h"
 void Clear()
 {
-#ifdef _WIN32
     system("cls");
-#else
-    system("clear");
-#endif
 }
-char *GetString()
+void FGetString(FILE *fp, string out)
 {
-    string out;
-    scanf("%s", out);
-    return out;
+    fgets(out, sizeof(string), fp);
+}
+void GetString(string out)
+{
+    gets_s(out, sizeof(string));
+    strcat(out, "\n");
 }
 void ERRORCRASH(char *word)
 {

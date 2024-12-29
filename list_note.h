@@ -1,8 +1,9 @@
 #pragma once
 #include <stdbool.h>
+// 事实证明，任何试图模仿STL的代码都很弱智
 #define Iterator(List, Func, ...) \
-    { /*无返回迭代器*/      \
-        list *l = List;           \
+    {                             \
+        list *l = (List);         \
         node *n = l->head;        \
         while (n != NULL)         \
         {                         \
@@ -10,18 +11,7 @@
             n = n->next;          \
         }                         \
     }
-#define IteratorReturn(List, ReturnType, Func, ...) \
-    ({ /*有返回迭代器*/                       \
-       list *l = List;                              \
-       node *n = l->head;                           \
-       ReturnType result;                           \
-       while (n != NULL)                            \
-       {                                            \
-           result = Func(n, __VA_ARGS__);           \
-           n = n->next;                             \
-       }                                            \
-       result                                       \
-    })
+
 typedef struct Node
 {
     struct Node *pre;
@@ -31,11 +21,12 @@ typedef struct Node
 typedef struct List
 {
     unsigned int size;
+    unsigned int maxID;
     node *head;
     node *tail;
 } list;
-list *ListInit(list *l);
+void ListInit(list **l);
 node *CreateNode(void *input);
 node *ListInsert(node *p, node *n);
-void *ListPush(list *l, node *n);
+void ListPush(list *l, node *n);
 bool RemoveNode(node *p);

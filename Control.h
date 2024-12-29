@@ -1,5 +1,5 @@
 #pragma once
 void Clear();
-void PrintLine(string a);
-char *GetString();
+void GetString(string out);
+void FGetString(FILE *fp, char *out);
 void ERRORCRASH(char *word);

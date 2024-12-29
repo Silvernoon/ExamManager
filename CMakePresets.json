@@ -12,6 +12,24 @@
                 "CMAKE_CXX_COMPILER": "C:/Users/sivn/scoop/apps/gcc/current/bin/g++.exe",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
+        },{
+            "name": "Releases",
+            "displayName": "Release",
+            "description": "使用编译器: C = C:\\Users\\sivn\\scoop\\apps\\gcc\\current\\bin\\gcc.exe, CXX = C:\\Users\\sivn\\scoop\\apps\\gcc\\current\\bin\\g++.exe",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "C:/Users/sivn/scoop/apps/gcc/current/bin/gcc.exe",
+                "CMAKE_CXX_COMPILER": "C:/Users/sivn/scoop/apps/gcc/current/bin/g++.exe",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Def",
+            "configurePreset": "Releases",
+            "configuration": "Release"
         }
     ]
 }
